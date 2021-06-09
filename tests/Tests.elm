@@ -1,6 +1,9 @@
 module Tests exposing (..)
 
+import Elm.Parser
+import ElmCodeSamples
 import Expect
+import ForrestsMapper
 import Test exposing (..)
 
 
@@ -21,4 +24,17 @@ all =
         --        , test "This test should fail" <|
         --            \_ ->
         --                Expect.fail "failed as expected!"
+        , test "Sorts ellie functions correctly" <|
+            \_ ->
+                Expect.equal (ForrestsMapper.process ellieAfterParsing)
+                    [ "initialModel", "main", "view", "update" ]
         ]
+
+
+ellieAfterParsing =
+    case Elm.Parser.parse ElmCodeSamples.ellie of
+        Err e ->
+            Debug.todo "This shouldn't happen"
+
+        Ok v ->
+            v
