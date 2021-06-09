@@ -1,11 +1,7 @@
-module ElmCodeSamples exposing (ellie, smallExampleFromElmSyntaxDocumentation)
-
-
-smallExampleFromElmSyntaxDocumentation =
-    """module Foo exposing(foo)
-
-foo = 1
-"""
+module ElmCodeSamples exposing
+    ( ellie
+    , forrestsSumOfMultiples
+    )
 
 
 ellie =
@@ -57,4 +53,17 @@ main =
         , view = view
         , update = update
         }
+"""
+
+
+forrestsSumOfMultiples =
+    """
+module SumOfMultiples exposing (sumOfMultiples)
+
+
+sumOfMultiples : List Int -> Int -> Int
+sumOfMultiples divisors limit =
+    List.range 1 (limit - 1)
+        |> List.filter (\u{000C} -> List.any (\u{0007} -> modBy a f == 0) divisors)
+        |> List.sum<Paste>
 """
