@@ -3,12 +3,12 @@ module Main exposing (main)
 import DrewsShortcuts
 import Elm.Parser
 import ElmCodeSamples exposing (ellie, forrestsSumOfMultiples)
-import ForrestsParser
+import ForrestsMapper
 import Html
 
 
-process : String -> Html.Html a
-process input =
+parseThenProcess : String -> Html.Html a
+parseThenProcess input =
     case Elm.Parser.parse input of
         Err e ->
             "Failed Parsing: "
@@ -16,9 +16,10 @@ process input =
                 |> Html.text
 
         Ok v ->
-            ForrestsParser.process v
+            ForrestsMapper.process v
                 |> DrewsShortcuts.displayList
 
 
+main : Html.Html a
 main =
-    process ellie
+    parseThenProcess ellie

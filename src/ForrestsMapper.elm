@@ -1,4 +1,4 @@
-module ForrestsParser exposing (process)
+module ForrestsMapper exposing (process)
 
 import Elm.Parser
 import Elm.Processing
