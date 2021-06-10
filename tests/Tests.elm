@@ -1,6 +1,9 @@
 module Tests exposing (..)
 
+import Elm.Parser
+import ElmCodeSamples
 import Expect
+import ForrestsMapper
 import Test exposing (..)
 
 
@@ -11,14 +14,17 @@ import Test exposing (..)
 all : Test
 all =
     describe "A Test Suite"
-        [ test "Addition" <|
+        [ test "Sorts ellie functions correctly" <|
             \_ ->
-                Expect.equal 10 (3 + 7)
-        , test "String.left" <|
-            \_ ->
-                Expect.equal "a" (String.left 1 "abcdefg")
-
-        --        , test "This test should fail" <|
-        --            \_ ->
-        --                Expect.fail "failed as expected!"
+                Expect.equal (ForrestsMapper.process ellieAfterParsing)
+                    [ "initialModel", "main", "view", "update" ]
         ]
+
+
+ellieAfterParsing =
+    case Elm.Parser.parse ElmCodeSamples.ellie of
+        Err e ->
+            Debug.todo "This shouldn't happen"
+
+        Ok v ->
+            v

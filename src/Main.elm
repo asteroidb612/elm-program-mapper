@@ -1,56 +1,25 @@
-module Main exposing (..)
+module Main exposing (main)
 
-import Browser
-import Html exposing (Html, text, div, h1, img)
-import Html.Attributes exposing (src)
-
-
----- MODEL ----
-
-
-type alias Model =
-    {}
+import DrewsShortcuts
+import Elm.Parser
+import ElmCodeSamples exposing (ellie, forrestsSumOfMultiples)
+import ForrestsMapper
+import Html
 
 
-init : ( Model, Cmd Msg )
-init =
-    ( {}, Cmd.none )
+parseThenProcess : String -> Html.Html a
+parseThenProcess input =
+    case Elm.Parser.parse input of
+        Err e ->
+            "Failed Parsing: "
+                ++ Debug.toString e
+                |> Html.text
+
+        Ok v ->
+            ForrestsMapper.process v
+                |> DrewsShortcuts.displayList
 
 
-
----- UPDATE ----
-
-
-type Msg
-    = NoOp
-
-
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
-    ( model, Cmd.none )
-
-
-
----- VIEW ----
-
-
-view : Model -> Html Msg
-view model =
-    div []
-        [ img [ src "/logo.svg" ] []
-        , h1 [] [ text "Your Elm App is working!" ]
-        ]
-
-
-
----- PROGRAM ----
-
-
-main : Program () Model Msg
+main : Html.Html a
 main =
-    Browser.element
-        { view = view
-        , init = \_ -> init
-        , update = update
-        , subscriptions = always Sub.none
-        }
+    parseThenProcess ellie
