@@ -6,7 +6,6 @@ This is a sketch of some things program mapper may map out.
 ![Sketch Image](sketch.pdf)
 
 
-
 # Elm App
 
 This project is bootstrapped with [Create Elm App](https://github.com/halfzebra/create-elm-app).
