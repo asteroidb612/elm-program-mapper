@@ -2,51 +2,61 @@ module Main exposing (main)
 
 import Elm.Parser
 import Elm.Processing
-import Elm.Syntax.Declaration as Declaration
-import Elm.Syntax.Node as Node
+import Elm.RawFile exposing (RawFile)
+import Elm.Syntax.Declaration as Declaration exposing (Declaration)
+import Elm.Syntax.Node as Node exposing (Node)
+import Elm.Syntax.TypeAnnotation as TypeAnnotation exposing (TypeAnnotation)
 import Html
 import Html.Attributes
+import Json.Encode
 
 
-displayList : List String -> Html.Html a
-displayList l =
-    l
-        |> List.map Html.text
+displayFunctionInfo : List String -> Html.Html a
+displayFunctionInfo info =
+    List.map Html.text info
         |> List.map List.singleton
         |> List.map (Html.div [ Html.Attributes.style "margin" "4em" ])
         |> Html.div []
 
 
-process input =
+extractFunctionInfo : RawFile -> List String
+extractFunctionInfo input =
     Elm.Processing.process Elm.Processing.init input
         |> .declarations
         |> List.filterMap justTheFunctions
-        |> Debug.log "functions"
-        |> List.sortBy Tuple.second
-        |> List.map Tuple.first
+        |> List.sortBy .argCount
+        |> List.map .typeAnnotation
+        |> List.map TypeAnnotation.encode
+        |> List.map (Json.Encode.encode 4)
 
 
+type alias FunctionInfo =
+    { name : String
+    , argCount : Int
+    , typeAnnotation : TypeAnnotation
+    }
+
+
+justTheFunctions : Node Declaration -> Maybe FunctionInfo
 justTheFunctions node =
     case node of
-        Node.Node _ (Declaration.FunctionDeclaration { declaration, signature }) ->
+        Node.Node _ (Declaration.FunctionDeclaration function) ->
             let
-                _ =
-                    signature
-                        |> (\x ->
-                                case x of
-                                    Nothing ->
-                                        Debug.todo ""
+                { name, arguments } =
+                    Node.value function.declaration
 
-                                    Just (Node.Node _ { typeAnnotation }) ->
-                                        typeAnnotation
-                                            |> Debug.log "sigs"
-                           )
+                writtenTypeAnnotation =
+                    Maybe.map Node.value function.signature
+                        |> Maybe.map .typeAnnotation
+                        |> Maybe.map Node.value
+
+                functionInfo typeInfo =
+                    { name = Node.value name
+                    , argCount = List.length arguments
+                    , typeAnnotation = typeInfo
+                    }
             in
-            case declaration of
-                Node.Node _ { name, arguments } ->
-                    case name of
-                        Node.Node _ n ->
-                            Just ( n, List.length arguments )
+            Maybe.map functionInfo writtenTypeAnnotation
 
         _ ->
             Nothing
@@ -60,9 +70,9 @@ parseThenProcess input =
                 ++ Debug.toString e
                 |> Html.text
 
-        Ok v ->
-            process v
-                |> displayList
+        Ok parsedElmCode ->
+            extractFunctionInfo parsedElmCode
+                |> displayFunctionInfo
 
 
 main : Html.Html a
@@ -70,6 +80,7 @@ main =
     parseThenProcess ellie
 
 
+ellie : String
 ellie =
     """
 module Main exposing (main)
