@@ -24,12 +24,11 @@ displayFunctionInfo info =
         |> Html.div []
 
 
-extractFunctionInfo : RawFile -> List String
+extractFunctionInfo : RawFile -> List FunctionInfo
 extractFunctionInfo input =
     Elm.Processing.process Elm.Processing.init input
         |> .declarations
         |> List.filterMap justTheFunctions
-        |> List.map renderFunc
 
 
 
@@ -136,34 +135,51 @@ namesThisDependsOn expression =
             []
 
 
-parseThenProcess : String -> Html.Html a
+parseThenProcess : String -> List FunctionInfo
 parseThenProcess input =
     case Elm.Parser.parse input of
         Err e ->
-            "Failed Parsing: "
-                --++ Debug.toString e
-                |> Html.text
+            Debug.todo "Failed Parsing: "
 
+        --    --++ Debug.toString e
+        --    |> List.singleton
         Ok parsedElmCode ->
             extractFunctionInfo parsedElmCode
-                |> displayFunctionInfo
-                |> (\x ->
-                        Html.div []
-                            [ x
-                            , Html.pre
-                                [ Attr.style "text-align" "left"
-                                , Attr.style "margin" "4em"
-                                ]
-                                [ Html.text ellie ]
-                            ]
-                   )
+
+
+arrangeRendered renderdFunc =
+    Html.div []
+        [ displayFunctionInfo renderdFunc
+        , Html.hr [] []
+        , Html.pre
+            [ Attr.style "text-align" "left"
+            , Attr.style "margin" "4em"
+            ]
+            [ Html.text ellie ]
+        ]
+
+
+encodeGraphViz funcs =
+    "digraph {a -> b}"
 
 
 main : Program () Model Msg
 main =
     Browser.element
-        { init = always ( (), newGraph "digraph {a -> b}" )
-        , view = always (parseThenProcess ellie)
+        { init =
+            always
+                ( ()
+                , newGraph
+                    (parseThenProcess ellie
+                        |> encodeGraphViz
+                    )
+                )
+        , view =
+            always
+                (parseThenProcess ellie
+                    |> List.map renderFunc
+                    |> arrangeRendered
+                )
         , update = \msg model -> ( model, Cmd.none )
         , subscriptions = \_ -> Sub.none
         }
