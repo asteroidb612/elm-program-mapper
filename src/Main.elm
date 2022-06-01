@@ -1,6 +1,7 @@
 port module Main exposing (main)
 
 import Browser
+import DotLang as GV exposing (..)
 import Elm.Parser
 import Elm.Processing
 import Elm.RawFile exposing (RawFile)
@@ -160,7 +161,22 @@ arrangeRendered renderdFunc =
 
 
 encodeGraphViz funcs =
-    "digraph {a -> b}"
+    let
+        makeEdge name dep =
+            EdgeStmtNode
+                (NodeId (ID dep) Nothing)
+                (EdgeNode (NodeId (ID name) Nothing))
+                []
+                []
+
+        edges =
+            List.concatMap
+                (\{ dependencies, name } ->
+                    List.map (makeEdge name) dependencies
+                )
+                funcs
+    in
+    toString (Dot Digraph Nothing edges)
 
 
 main : Program () Model Msg
