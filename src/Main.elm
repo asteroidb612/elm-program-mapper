@@ -75,8 +75,12 @@ justTheFunctions node =
 
 namesThisDependsOn expression =
     case Node.value expression of
-        Expression.FunctionOrValue _ name ->
-            [ name ]
+        Expression.FunctionOrValue mods name ->
+            if mods == [] then
+                [ name ]
+
+            else
+                []
 
         Expression.Application expressions ->
             List.concatMap (\e -> namesThisDependsOn e) expressions
