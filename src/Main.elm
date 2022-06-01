@@ -1,21 +1,26 @@
-module Main exposing (main)
+port module Main exposing (main)
 
+import Browser
 import Elm.Parser
 import Elm.Processing
 import Elm.RawFile exposing (RawFile)
 import Elm.Syntax.Declaration as Declaration exposing (Declaration)
+import Elm.Syntax.Expression as Expression
 import Elm.Syntax.Node as Node exposing (Node)
 import Elm.Syntax.TypeAnnotation as TypeAnnotation exposing (TypeAnnotation)
 import Html
-import Html.Attributes
+import Html.Attributes as Attr
 import Json.Encode
+
+
+port newGraph : String -> Cmd msg
 
 
 displayFunctionInfo : List String -> Html.Html a
 displayFunctionInfo info =
     List.map Html.text info
         |> List.map List.singleton
-        |> List.map (Html.div [ Html.Attributes.style "margin" "4em" ])
+        |> List.map (Html.div [ Attr.style "margin" "4em" ])
         |> Html.div []
 
 
@@ -24,16 +29,24 @@ extractFunctionInfo input =
     Elm.Processing.process Elm.Processing.init input
         |> .declarations
         |> List.filterMap justTheFunctions
-        |> List.sortBy .argCount
-        |> List.map .typeAnnotation
-        |> List.map TypeAnnotation.encode
-        |> List.map (Json.Encode.encode 4)
+        |> List.map renderFunc
+
+
+
+--|> List.map .typeAnnotation
+--|> List.map TypeAnnotation.encode
+--|> List.map (Json.Encode.encode 4)
+
+
+renderFunc { name, dependencies } =
+    name ++ "::" ++ Debug.toString dependencies
 
 
 type alias FunctionInfo =
     { name : String
     , argCount : Int
     , typeAnnotation : TypeAnnotation
+    , dependencies : List String
     }
 
 
@@ -42,7 +55,7 @@ justTheFunctions node =
     case node of
         Node.Node _ (Declaration.FunctionDeclaration function) ->
             let
-                { name, arguments } =
+                { name, arguments, expression } =
                     Node.value function.declaration
 
                 writtenTypeAnnotation =
@@ -54,12 +67,73 @@ justTheFunctions node =
                     { name = Node.value name
                     , argCount = List.length arguments
                     , typeAnnotation = typeInfo
+                    , dependencies = namesThisDependsOn expression
                     }
             in
-            Maybe.map functionInfo writtenTypeAnnotation
+            writtenTypeAnnotation
+                |> Maybe.map functionInfo
 
         _ ->
             Nothing
+
+
+namesThisDependsOn expression =
+    case Node.value expression of
+        Expression.FunctionOrValue _ name ->
+            [ name ]
+
+        Expression.Application expressions ->
+            List.concatMap (\e -> namesThisDependsOn e) expressions
+
+        Expression.OperatorApplication _ _ first second ->
+            List.concatMap (\e -> namesThisDependsOn e) [ first, second ]
+
+        Expression.IfBlock e1 e2 e3 ->
+            List.concatMap (\e -> namesThisDependsOn e) [ e1, e2, e3 ]
+
+        Expression.Negation e ->
+            namesThisDependsOn e
+
+        Expression.TupledExpression expressions ->
+            List.concatMap (\e -> namesThisDependsOn e) expressions
+
+        Expression.ParenthesizedExpression e ->
+            namesThisDependsOn e
+
+        Expression.LetExpression block ->
+            {- TODO Add expressions in let expression -}
+            []
+
+        Expression.CaseExpression block ->
+            {- TODO Add expressions in case expression -}
+            []
+
+        Expression.LambdaExpression lambda ->
+            {- TODO Add expressions in lambda -}
+            []
+
+        Expression.RecordExpr recordSets ->
+            List.concatMap
+                (\recordSet ->
+                    namesThisDependsOn (Tuple.second (Node.value recordSet))
+                )
+                recordSets
+
+        Expression.RecordUpdateExpression _ recordSets ->
+            List.concatMap
+                (\recordSet ->
+                    namesThisDependsOn (Tuple.second (Node.value recordSet))
+                )
+                recordSets
+
+        Expression.ListExpr expressions ->
+            List.concatMap (\e -> namesThisDependsOn e) expressions
+
+        Expression.RecordAccess e _ ->
+            namesThisDependsOn e
+
+        _ ->
+            []
 
 
 parseThenProcess : String -> Html.Html a
@@ -73,11 +147,34 @@ parseThenProcess input =
         Ok parsedElmCode ->
             extractFunctionInfo parsedElmCode
                 |> displayFunctionInfo
+                |> (\x ->
+                        Html.div []
+                            [ x
+                            , Html.pre
+                                [ Attr.style "text-align" "left"
+                                , Attr.style "margin" "4em"
+                                ]
+                                [ Html.text ellie ]
+                            ]
+                   )
 
 
-main : Html.Html a
+main : Program () Model Msg
 main =
-    parseThenProcess ellie
+    Browser.element
+        { init = always ( (), newGraph "digraph {a -> b}" )
+        , view = always (parseThenProcess ellie)
+        , update = \msg model -> ( model, Cmd.none )
+        , subscriptions = \_ -> Sub.none
+        }
+
+
+type alias Model =
+    ()
+
+
+type Msg
+    = Msg
 
 
 ellie : String
