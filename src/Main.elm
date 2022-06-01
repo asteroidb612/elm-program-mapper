@@ -34,12 +34,6 @@ extractFunctionInfo input =
         |> List.filterMap justTheFunctions
 
 
-
---|> List.map .typeAnnotation
---|> List.map TypeAnnotation.encode
---|> List.map (Json.Encode.encode 4)
-
-
 renderFunc { name, dependencies } =
     name ++ "::[" ++ String.join ", " dependencies ++ "]"
 
@@ -173,11 +167,16 @@ encodeGraphViz funcs =
                 []
 
         edges =
-            List.concatMap
-                (\{ dependencies, name } ->
-                    List.map (makeEdge name) (Set.toList (Set.fromList dependencies))
-                )
-                funcs
+            funcs
+                |> List.filter
+                    (\{ name } ->
+                        not (List.member name [ "main", "page" ])
+                    )
+                |> List.concatMap
+                    (\{ dependencies, name } ->
+                        List.map (makeEdge name)
+                            (Set.toList (Set.fromList dependencies))
+                    )
     in
     toString (Dot Digraph Nothing edges)
 
