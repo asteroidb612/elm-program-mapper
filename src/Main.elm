@@ -11,6 +11,7 @@ import Elm.Syntax.Node as Node exposing (Node)
 import Elm.Syntax.TypeAnnotation as TypeAnnotation exposing (TypeAnnotation)
 import Html
 import Html.Attributes as Attr
+import Html.Events as Events
 import Json.Encode
 
 
@@ -152,6 +153,7 @@ arrangeRendered renderdFunc =
     Html.div []
         [ displayFunctionInfo renderdFunc
         , Html.hr [] []
+        , Html.textarea [ Events.onInput UpdateInput ] []
         , Html.pre
             [ Attr.style "text-align" "left"
             , Attr.style "margin" "4em"
@@ -184,29 +186,42 @@ main =
     Browser.element
         { init =
             always
-                ( ()
-                , newGraph
-                    (parseThenProcess ellie
-                        |> encodeGraphViz
-                    )
+                ( ellie
+                , ellie
+                    |> parseThenProcess
+                    |> encodeGraphViz
+                    |> newGraph
                 )
-        , view =
-            always
-                (parseThenProcess ellie
-                    |> List.map renderFunc
-                    |> arrangeRendered
-                )
-        , update = \msg model -> ( model, Cmd.none )
+        , view = view
+        , update = update
         , subscriptions = \_ -> Sub.none
         }
 
 
+view model =
+    parseThenProcess model
+        |> List.map renderFunc
+        |> arrangeRendered
+
+
+update msg model =
+    case msg of
+        UpdateInput change ->
+            ( change
+                |> Debug.log "changedModel"
+            , change
+                |> parseThenProcess
+                |> encodeGraphViz
+                |> newGraph
+            )
+
+
 type alias Model =
-    ()
+    String
 
 
 type Msg
-    = Msg
+    = UpdateInput String
 
 
 ellie : String
