@@ -39,7 +39,7 @@ extractFunctionInfo input =
 
 
 renderFunc { name, dependencies } =
-    name ++ "::" ++ Debug.toString dependencies
+    name ++ "::[" ++ String.join ", " dependencies ++ "]"
 
 
 type alias FunctionInfo =
@@ -141,7 +141,7 @@ parseThenProcess input =
     case Elm.Parser.parse input of
         Err e ->
             "Failed Parsing: "
-                ++ Debug.toString e
+                --++ Debug.toString e
                 |> Html.text
 
         Ok parsedElmCode ->
