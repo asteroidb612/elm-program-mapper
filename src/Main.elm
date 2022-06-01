@@ -13,6 +13,7 @@ import Html
 import Html.Attributes as Attr
 import Html.Events as Events
 import Json.Encode
+import Set
 
 
 port newGraph : String -> Cmd msg
@@ -174,7 +175,7 @@ encodeGraphViz funcs =
         edges =
             List.concatMap
                 (\{ dependencies, name } ->
-                    List.map (makeEdge name) dependencies
+                    List.map (makeEdge name) (Set.toList (Set.fromList dependencies))
                 )
                 funcs
     in
