@@ -173,6 +173,10 @@ arrangeRendered renderdFunc =
 
 encodeGraphViz funcs =
     let
+        topLevelDefs =
+            List.map .name funcs
+                |> Set.fromList
+
         makeEdge name dep =
             EdgeStmtNode
                 (NodeId (ID dep) Nothing)
@@ -188,8 +192,10 @@ encodeGraphViz funcs =
                     )
                 |> List.concatMap
                     (\{ dependencies, name } ->
-                        List.map (makeEdge name)
-                            (Set.toList (Set.fromList dependencies))
+                        Set.fromList dependencies
+                            |> Set.intersect topLevelDefs
+                            |> Set.toList
+                            |> List.map (makeEdge name)
                     )
     in
     toString (Dot Digraph Nothing edges)
