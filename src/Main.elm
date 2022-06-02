@@ -101,16 +101,26 @@ namesThisDependsOn expression =
             namesThisDependsOn e
 
         Expression.LetExpression block ->
-            {- TODO Add expressions in let expression -}
-            []
+            namesThisDependsOn block.expression
+                ++ List.concatMap
+                    (\declaration ->
+                        case Node.value declaration of
+                            Expression.LetFunction func ->
+                                Node.value func.declaration
+                                    |> .expression
+                                    |> namesThisDependsOn
+
+                            Expression.LetDestructuring _ nodeExpression ->
+                                namesThisDependsOn nodeExpression
+                    )
+                    block.declarations
 
         Expression.CaseExpression block ->
-            {- TODO Add expressions in case expression -}
-            []
+            namesThisDependsOn block.expression
+                ++ List.concatMap (\c -> namesThisDependsOn (Tuple.second c)) block.cases
 
         Expression.LambdaExpression lambda ->
-            {- TODO Add expressions in lambda -}
-            []
+            namesThisDependsOn lambda.expression
 
         Expression.RecordExpr recordSets ->
             List.concatMap
