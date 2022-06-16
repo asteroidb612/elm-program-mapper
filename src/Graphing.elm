@@ -45,9 +45,17 @@ encodeGraphViz funcs =
             )
             edges
         )
-        |> Graph.DOT.outputWithStyles
-            { defaultStyles
-                | graph = "splines=ortho, ratio=0.3, ordering=out"
-            }
-            (Just << identity)
-            (always Nothing)
+        |> graphToString
+
+
+graphToString graph =
+    Graph.DOT.outputWithStyles
+        { defaultStyles
+            | graph = "splines=ortho, ordering=out, overlap = scale;"
+            , node = "shape=rect, style=\"rounded\""
+            , edge = "arrowhead=none, arrowtail=none"
+            , rankdir = Graph.DOT.LR
+        }
+        (Just << identity)
+        (always Nothing)
+        graph
