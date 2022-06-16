@@ -18,16 +18,10 @@ main =
         { init =
             always
                 ( Sample.ellie
-                , Cmd.batch
-                    [ Sample.ellie
-                        |> Parsing.parseThenProcess
-                        |> Graphing.encodeGraphViz
-                        |> newGraph
-                    , Http.get
-                        { url = codeUrl
-                        , expect = Http.expectString GotCode
-                        }
-                    ]
+                , Http.get
+                    { url = codeUrl
+                    , expect = Http.expectString GotCode
+                    }
                 )
         , view = view
         , update = update
@@ -51,12 +45,12 @@ renderFunc { name, dependencies } =
     name ++ "::[" ++ String.join ", " dependencies ++ "]"
 
 
-arrangeRendered renderdFunc =
+arrangeRendered model renderdFunc =
     Html.div []
         [ Html.div
             [ Attr.style "position" "fixed"
             , Attr.style "top" "0"
-            , Attr.style "left" "0"
+            , Attr.style "right" "0"
             ]
             [ Html.textarea [ Events.onInput UpdateInput ] [] ]
         , Html.hr [] []
@@ -65,14 +59,14 @@ arrangeRendered renderdFunc =
             [ Attr.style "text-align" "left"
             , Attr.style "margin" "4em"
             ]
-            [ Html.text Sample.ellie ]
+            [ Html.text model ]
         ]
 
 
 view model =
     Parsing.parseThenProcess model
         |> List.map renderFunc
-        |> arrangeRendered
+        |> arrangeRendered model
 
 
 
@@ -82,12 +76,11 @@ view model =
 update msg model =
     case msg of
         UpdateInput change ->
-            ( change
-                |> Debug.log "changedModel"
-            , change
-                |> Parsing.parseThenProcess
-                |> Graphing.encodeGraphViz
-                |> newGraph
+            ( model
+            , Http.get
+                { url = change
+                , expect = Http.expectString GotCode
+                }
             )
 
         GotCode (Ok code) ->
@@ -117,7 +110,7 @@ type Msg
 
 
 codeUrl =
-    "https://raw.githubusercontent.com/SocietyLibrary/debate_map_guide/import-review/src/Page/Papers/Paper_/Paragraphs.elm"
+    "https://raw.githubusercontent.com/erkal/kite/master/src/Main.elm"
 
 
 port newGraph : String -> Cmd msg
