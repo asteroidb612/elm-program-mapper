@@ -85,7 +85,6 @@ update msg model =
 
         GotCode (Ok code) ->
             ( code
-                |> Debug.log "changedModel"
             , code
                 |> Parsing.parseThenProcess
                 |> Graphing.encodeGraphViz
@@ -93,10 +92,6 @@ update msg model =
             )
 
         GotCode (Err e) ->
-            let
-                _ =
-                    Debug.log "Error getting code" e
-            in
             ( model, Cmd.none )
 
 

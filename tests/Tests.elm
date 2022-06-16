@@ -29,12 +29,3 @@ all =
                 Expect.equal (ForrestsMapper.process ellieAfterParsing)
                     [ "initialModel", "main", "view", "update" ]
         ]
-
-
-ellieAfterParsing =
-    case Elm.Parser.parse ElmCodeSamples.ellie of
-        Err e ->
-            Debug.todo "This shouldn't happen"
-
-        Ok v ->
-            v

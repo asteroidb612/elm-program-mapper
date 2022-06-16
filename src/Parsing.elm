@@ -86,10 +86,8 @@ parseThenProcess : String -> List FunctionInfo
 parseThenProcess input =
     case Elm.Parser.parse input of
         Err e ->
-            Debug.todo "Failed Parsing: "
+            []
 
-        --    --++ Debug.toString e
-        --    |> List.singleton
         Ok parsedElmCode ->
             extractFunctionInfo parsedElmCode
 

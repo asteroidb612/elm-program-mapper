@@ -37,7 +37,7 @@ encodeGraphViz funcs =
                 |> List.concatMap identity
     in
     Graph.fromNodeLabelsAndEdgePairs
-        (Debug.log "names" (List.map .name filteredFuncs))
+        (List.map .name filteredFuncs)
         (List.filterMap
             (\{ i, dependency } ->
                 List.findIndex (\func -> func.name == dependency) filteredFuncs
