@@ -53,7 +53,16 @@ arrangeRendered model renderdFunc =
             , Attr.style "bottom" "0"
             , Attr.style "left" "0"
             ]
-            [ Html.textarea [ Events.onInput UpdateInput ] [] ]
+            [ Html.textarea
+                [ Attr.placeholder "Paste github raw links of elm for more graphs!"
+                , Attr.style "height" "4em"
+                , Attr.style "width" "20em"
+                , Events.onInput UpdateInput
+                ]
+                []
+            , Html.div [ Attr.style "width" "20em" ]
+                [ Html.text "EG https://raw.githubusercontent.com/asteroidb612/elm-program-mapper/main/src/Main.elm" ]
+            ]
         , Html.hr [] []
         , displayFunctionInfo renderdFunc
         , Html.pre
