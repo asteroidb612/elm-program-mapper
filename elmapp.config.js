@@ -1,3 +1,3 @@
 module.exports = {
-    homepage: "http://mywebsite.com/relativepath"
+    homepage: "https://asteroidb612.github.io/elm-program-mapper"
 }
