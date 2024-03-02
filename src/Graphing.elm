@@ -41,7 +41,7 @@ encodeGraphViz funcs =
         (List.filterMap
             (\{ i, dependency } ->
                 List.findIndex (\func -> func.name == dependency) filteredFuncs
-                    |> Maybe.map (\j -> ( i, j ))
+                    |> Maybe.map (\j -> ( j, i ))
             )
             edges
         )
@@ -53,7 +53,7 @@ graphToString graph =
         { defaultStyles
             | graph = "splines=ortho, ordering=out, overlap = scale;"
             , node = "shape=rect, style=\"rounded\""
-            , edge = "arrowhead=none, arrowtail=none"
+            , edge = "arrowtail=none"
             , rankdir = Graph.DOT.LR
         }
         (Just << identity)
