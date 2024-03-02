@@ -1,4 +1,4 @@
-module Main exposing (main)
+port module Main exposing (main)
 
 import Browser
 import Graphing
@@ -66,14 +66,10 @@ arrangeRendered model renderdFunc =
 
 view { code, link } =
     Html.div []
-        [ Html.iframe
-            [ Attr.src link
-
-            --, Attr.style "position" "fixed"
-            --, Attr.style "top" "0"
-            --, Attr.style "width" "100vw"
-            , Attr.style "width" "100%"
+        [ Html.div
+            [ Attr.style "width" "100%"
             , Attr.style "height" "30em"
+            , Attr.id iframeId
             ]
             []
         , Parsing.parseThenProcess code
@@ -97,18 +93,23 @@ update msg model =
             )
 
         GotCode (Ok code) ->
-            ( { code = code
-              , link =
+            let
+                link =
                     code
                         |> Parsing.parseThenProcess
                         |> Graphing.encodeGraphViz
                         |> newGraphLink
-              }
-            , Cmd.none
+            in
+            ( { code = code, link = link }
+            , updateIframe ( iframeId, link )
             )
 
         GotCode (Err e) ->
             ( model, Cmd.none )
+
+
+iframeId =
+    "edotorFrame"
 
 
 type alias Model =
@@ -127,3 +128,6 @@ codeUrl =
 newGraphLink : String -> String
 newGraphLink code =
     "https://edotor.net?engine=dot#" ++ percentEncode code
+
+
+port updateIframe : ( String, String ) -> Cmd msg
